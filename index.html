@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Algorithm Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Spring Garden Palette */
+            --primary-teal: #5B8E7D;
+            --accent-red: #B44B4C;
+            --highlight-yellow: #F5E084;
+            --accent-orange: #E9A971;
+            --accent-green: #8DB580;
+
+            /* Dark Theme (Default) */
+            --background-main-dark: #1c1c1c;
+            --background-panel-dark: #2d2d2d;
+            --background-header-dark: #2d2d2d;
+            --background-canvas-dark: #222222;
+            --background-button-dark: #3c3c3c;
+            --background-button-hover-dark: #4d4d4d;
+            --background-code-dark: #3c3c3c;
+            --text-primary-dark: #f0f0f0;
+            --text-secondary-dark: #a0a0a0;
+            --border-primary-dark: #4d4d4d;
+            --border-secondary-dark: #666666;
+            --scrollbar-thumb-dark: #4d4d4d;
+            --scrollbar-thumb-hover-dark: #666666;
+
+            /* Light Theme */
+            --background-main-light: #fdfdfd;
+            --background-panel-light: #ffffff;
+            --background-header-light: #ffffff;
+            --background-canvas-light: #f0f0f0;
+            --background-button-light: #fff;
+            --background-button-hover-light: #f7f7f7;
+            --background-code-light: #f0f0f0;
+            --text-primary-light: #212121;
+            --text-secondary-light: #555555;
+            --border-primary-light: #e0e0e0;
+            --border-secondary-light: #cccccc;
+            --scrollbar-thumb-light: #cccccc;
+            --scrollbar-thumb-hover-light: #b0b0b0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--background-main-dark);
+            min-height: 100vh;
+            color: var(--text-primary-dark);
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        body.light-mode {
+            background: var(--background-main-light);
+            color: var(--text-primary-light);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--background-main-dark);
+        }
+        body.light-mode .container { background: var(--background-main-light); }
+
+        .header {
+            background: var(--background-header-dark);
+            color: var(--text-primary-dark);
+            padding: 16px 24px;
+            border-bottom: 4px solid var(--accent-red);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+        body.light-mode .header {
+            background: var(--background-header-light);
+            color: var(--text-primary-light);
+        }
+
+        .header h1 { font-size: 22px; font-weight: 700; }
+        .header p {
+            font-size: 15px;
+            color: var(--text-secondary-dark);
+            margin-left: 16px; padding-left: 16px;
+            border-left: 1px solid var(--border-primary-dark);
+        }
+        body.light-mode .header p {
+            color: var(--text-secondary-light);
+            border-left-color: var(--border-primary-light);
+        }
+
+        .main-content { display: flex; flex: 1; overflow: hidden; }
+
+        .sidebar, .explanation-panel {
+            width: 300px;
+            background: var(--background-panel-dark);
+            padding: 24px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            display: flex; flex-direction: column;
+            border: none;
+        }
+        body.light-mode .sidebar, body.light-mode .explanation-panel {
+            background: var(--background-panel-light);
+        }
+        
+        .sidebar { border-right: 1px solid var(--border-primary-dark); }
+        body.light-mode .sidebar { border-right-color: var(--border-primary-light); }
+        
+        .explanation-panel { border-left: 1px solid var(--border-primary-dark); }
+        body.light-mode .explanation-panel { border-left-color: var(--border-primary-light); }
+
+        .controls-section { margin-bottom: 24px; }
+        .controls-section h3 {
+            color: var(--text-primary-dark);
+            margin-bottom: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-primary-dark);
+            padding-bottom: 8px;
+        }
+        body.light-mode .controls-section h3 {
+             color: var(--text-primary-light);
+             border-bottom-color: var(--border-primary-light);
+        }
+
+        .button-group { display: flex; flex-direction: column; gap: 8px; }
+
+        button {
+            padding: 10px 12px;
+            border: 1px solid var(--border-primary-dark);
+            background: var(--background-button-dark);
+            color: var(--text-primary-dark);
+            cursor: pointer;
+            font-size: 14px; font-weight: 500;
+            transition: all 0.15s ease;
+            font-family: inherit;
+            text-align: left;
+            border-radius: 4px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        body.light-mode button {
+            border-color: var(--border-primary-light);
+            background: var(--background-button-light);
+            color: var(--text-primary-light);
+        }
+
+        button:hover {
+            background: var(--background-button-hover-dark);
+            border-color: var(--border-secondary-dark);
+        }
+        body.light-mode button:hover {
+            background: var(--background-button-hover-light);
+            border-color: var(--border-secondary-light);
+        }
+
+        button svg { width: 18px; height: 18px; fill: currentColor; opacity: 0.8; }
+        .btn-primary, .btn-success { color: #fff; }
+
+        .btn-primary { background: var(--accent-red); border-color: var(--accent-red); }
+        .btn-primary:hover { background: #9d4243; border-color: #9d4243; }
+        
+        .btn-success { background: var(--primary-teal); border-color: var(--primary-teal); }
+        .btn-success:hover { background: #4a7568; border-color: #4a7568; }
+        
+        select {
+            width: 100%; padding: 10px 12px;
+            border: 1px solid var(--border-primary-dark);
+            background: var(--background-button-dark);
+            color: var(--text-primary-dark);
+            font-size: 14px; margin-bottom: 8px;
+            font-family: inherit; border-radius: 4px;
+        }
+        body.light-mode select {
+            border-color: var(--border-primary-light);
+            background: var(--background-button-light);
+            color: var(--text-primary-light);
+        }
+        select:focus { outline: none; border-color: var(--primary-teal); }
+
+        .canvas-container {
+            flex: 1; position: relative;
+            background: var(--background-canvas-dark);
+            overflow: hidden;
+        }
+        body.light-mode .canvas-container { background: var(--background-canvas-light); }
+
+        #graphCanvas { width: 100%; height: 100%; border: none; }
+
+        .step-controls { display: flex; gap: 8px; }
+        .step-controls button { flex: 1; justify-content: center; }
+        
+        #autoPlay { width: 100%; justify-content: center; margin-top: 8px; }
+
+        #stepTitle {
+            color: var(--text-primary-dark);
+            margin-bottom: 8px; font-size: 18px; font-weight: 700;
+        }
+        body.light-mode #stepTitle { color: var(--text-primary-light); }
+
+        #stepDescription {
+            color: var(--text-secondary-dark);
+            line-height: 1.6; font-size: 14px;
+            flex: 1; overflow-y: auto;
+            padding-right: 8px;
+        }
+        body.light-mode #stepDescription { color: var(--text-secondary-light); }
+        
+        .data-structure-panel {
+            background: var(--background-panel-dark);
+            border: 1px solid var(--border-primary-dark);
+            padding: 12px; margin-top: 16px; border-radius: 4px;
+        }
+        body.light-mode .data-structure-panel {
+            background: var(--background-panel-light);
+            border-color: var(--border-primary-light);
+        }
+        
+        .data-structure-panel h5 {
+            font-size: 14px; font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary-dark);
+        }
+        body.light-mode .data-structure-panel h5 { color: var(--text-primary-light); }
+
+         .data-structure-panel code {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 13px; color: #8cb4ff;
+            white-space: pre-wrap; word-wrap: break-word;
+            display: block;
+            background: var(--background-code-dark);
+            padding: 8px; border-radius: 4px;
+        }
+        body.light-mode .data-structure-panel code {
+             background: var(--background-code-light);
+             color: var(--primary-teal);
+        }
+
+        .mode-indicator {
+            position: absolute; top: 16px; left: 16px;
+            background: rgba(0,0,0,0.6);
+            color: white; padding: 6px 12px;
+            font-size: 12px; font-weight: 500;
+            border-radius: 4px; z-index: 10;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb-dark); border-radius: 4px; }
+        body.light-mode ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb-light); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover-dark); }
+        body.light-mode ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover-light); }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="container">
+        <div class="header">
+            <h1>Graph Algorithm Visualizer</h1>
+            <p>Spring Garden Edition</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="controls-section">
+                    <h3>Graph Editor</h3>
+                    <div class="button-group">
+                        <button id="addNodeBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>Add Nodes</button>
+                        <button id="addEdgeBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm-8-6a2 2 0 1 1 0-4a2 2 0 0 1 0 4Zm16 0a2 2 0 1 1 0-4a2 2 0 0 1 0 4ZM4 14a2 2 0 1 1 0 4a2 2 0 0 1 0-4Zm16 0a2 2 0 1 1 0 4a2 2 0 0 1 0-4ZM8.5 10.5h7v3h-7v-3Z"/></svg>Add Edges</button>
+                        <button id="moveNodeBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5c0 3.3-2.5 5.8-5 6.3V21h-2v-7.7c-2.5-.5-5-3-5-6.3a5 5 0 0 1 5-5Zm-2 5a2 2 0 1 0 4 0a2 2 0 0 0-4 0Z"/></svg>Move Nodes</button>
+                        <button id="setStartNodeBtn" class="btn-success"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 1 0-18a9 9 0 0 1 0 18Zm0-2a7 7 0 1 0 0-14a7 7 0 0 0 0 14Z"/></svg>Set Start Node</button>
+                        <button id="setEndNodeBtn" class="btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-2a4 4 0 1 0 0-8a4 4 0 0 0 0 8Z"/></svg>Set End Node</button>
+                        <button id="clearGraphBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v10ZM18 4h-2.5l-1-1h-5l-1 1H5v2h13V4Z"/></svg>Clear Graph</button>
+                        <button id="sampleGraphBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 17v-2h2v2H3Zm2 4v-2h2v2H5Zm-2-8v-2h2v2H3Zm2 4v-2h2v2H5Zm6-12v-2h2v2h-2Zm-4 4V7h2v2H7Zm12-4v2h2V5h-2Zm-2 2v-2h2v2h-2Zm-4-2V3h2v2h-2Zm2 4V7h2v2h-2Zm-4-2V5h2v2h-2Zm4 8v-2h2v2h-2Zm-4 4v-2h2v2h-2Zm4 0v-2h2v2h-2Zm2-4v-2h2v2h-2Zm-8-2v-2h2v2H7Zm4 4v-2h2v2h-2Z"/></svg>Load Sample</button>
+                    </div>
+                </div>
+
+                <div class="controls-section">
+                    <h3>Algorithm</h3>
+                    <select id="algorithmSelect">
+                        <option value="">Select Algorithm</option>
+                        <option value="kruskal">Kruskal's MST</option>
+                        <option value="dijkstra">Dijkstra's Shortest Path</option>
+                        <option value="dfs">Depth-First Search</option>
+                        <option value="bfs">Breadth-First Search</option>
+                    </select>
+                     <button id="startAlgorithm" class="btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5Z"/></svg>Start Algorithm</button>
+                     <button id="resetAlgorithm" style="margin-top: 8px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6s-2.69 6-6 6s-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8s-3.58-8-8-8Z"/></svg>Reset</button>
+                </div>
+
+                <div class="controls-section">
+                    <h3>Settings</h3>
+                    <div class="button-group">
+                        <button id="themeToggleBtn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26a5.403 5.403 0 0 1-5.4-5.4c0-1.81 1.8-4.2 2.26-4.4A8.89 8.89 0 0 0 12 3Z"/></svg>Toggle Theme</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <div class="mode-indicator" id="modeIndicator">Ready</div>
+                <canvas id="graphCanvas"></canvas>
+            </div>
+            
+            <div class="explanation-panel">
+                <div class="controls-section">
+                    <h3>Controls</h3>
+                    <div class="step-controls">
+                        <button id="prevStep"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14 7l-5 5l5 5V7z"/></svg>Previous</button>
+                        <button id="nextStep">Next<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m10 17l5-5l-5-5v10z"/></svg></button>
+                    </div>
+                    <button id="autoPlay" class="btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8a8 8 0 0 0-8-8a8 8 0 0 0-8 8a8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10a10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m-3 15V7l9 5l-9 5Z"/></svg>Auto Play</svg></button>
+                </div>
+
+                <div class="description-panel" style="flex:1; display:flex; flex-direction:column;">
+                    <h4 id="stepTitle">Welcome!</h4>
+                    <p id="stepDescription" style="flex:1; overflow-y:auto;">
+                        Welcome to the Graph Algorithm Visualizer!
+                        <br><br>
+                        1. Use the controls on the left to build a graph. Add nodes, then connect them with edges.
+                        <br><br>
+                        2. For pathfinding algorithms (Dijkstra, BFS, DFS), select a start and end node.
+                        <br><br>
+                        3. Choose an algorithm and click "Start" to begin the visualization.
+                        <br><br>
+                        Follow the detailed explanations here to understand how each algorithm works.
+                    </p>
+                </div>
+                
+                 <div class="data-structure-panel" id="dataStructurePanel">
+                    <h5 id="dataStructureTitle">Data Structure</h5>
+                    <code id="dataStructureState">State will be shown here...</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- THEME TOGGLING ---
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const body = document.body;
+
+        themeToggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            localStorage.setItem('theme', body.classList.contains('light-mode') ? 'light' : 'dark');
+            visualizer.updateDisplay(); // Redraw canvas with new theme colors
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark'; // Default to dark
+            if (savedTheme === 'light') {
+                body.classList.add('light-mode');
+            } else {
+                body.classList.remove('light-mode');
+            }
+        });
+
+        // --- GRAPH VISUALIZER CLASS ---
+        class GraphVisualizer {
+            constructor() {
+                this.canvas = document.getElementById('graphCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.nodes = []; this.edges = [];
+                this.mode = 'ready'; this.selectedNode = null;
+                this.algorithm = null; this.currentStep = 0;
+                this.algorithmSteps = []; this.autoPlayInterval = null;
+                this.nodeRadius = 25; this.nextNodeId = 0;
+                
+                this.isDragging = false; this.draggedNode = null;
+                this.startNode = null; this.endNode = null;
+                
+                this.initCanvas();
+                this.bindEvents();
+                document.addEventListener('DOMContentLoaded', () => this.updateDisplay());
+            }
+
+            initCanvas() {
+                const container = this.canvas.parentElement;
+                const rect = container.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+            }
+
+            bindEvents() {
+                document.getElementById('addNodeBtn').addEventListener('click', () => this.setMode('addNode'));
+                document.getElementById('addEdgeBtn').addEventListener('click', () => this.setMode('addEdge'));
+                document.getElementById('clearGraphBtn').addEventListener('click', () => this.clearGraph());
+                document.getElementById('sampleGraphBtn').addEventListener('click', () => this.loadSampleGraph());
+                document.getElementById('startAlgorithm').addEventListener('click', () => this.startAlgorithm());
+                document.getElementById('resetAlgorithm').addEventListener('click', () => this.resetAlgorithm());
+                document.getElementById('nextStep').addEventListener('click', () => this.nextStep());
+                document.getElementById('prevStep').addEventListener('click', () => this.previousStep());
+                document.getElementById('autoPlay').addEventListener('click', () => this.toggleAutoPlay());
+                document.getElementById('moveNodeBtn').addEventListener('click', () => this.setMode('moveNode'));
+                document.getElementById('setStartNodeBtn').addEventListener('click', () => this.setMode('setStartNode'));
+                document.getElementById('setEndNodeBtn').addEventListener('click', () => this.setMode('setEndNode'));
+
+                this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+                this.canvas.addEventListener('mouseleave', (e) => this.handleMouseLeave(e));
+                
+                document.getElementById('algorithmSelect').addEventListener('change', (e) => { this.algorithm = e.target.value; this.resetAlgorithm(); });
+                window.addEventListener('resize', () => { this.initCanvas(); this.updateDisplay(); });
+            }
+
+            setMode(newMode) {
+                this.mode = newMode; this.selectedNode = null;
+                this.updateModeIndicator();
+            }
+
+            updateModeIndicator() {
+                const indicator = document.getElementById('modeIndicator');
+                const modes = {
+                    'ready': 'Ready', 'addNode': 'Click to add nodes', 'addEdge': 'Click two nodes to connect',
+                    'moveNode': 'Click and drag to move nodes', 'setStartNode': 'Click a node to be the Start',
+                    'setEndNode': 'Click a node to be the End', 'algorithm': 'Running algorithm'
+                };
+                indicator.textContent = modes[this.mode] || 'Ready';
+
+                if (this.mode === 'addNode') this.canvas.style.cursor = 'crosshair';
+                else if (['addEdge', 'setStartNode', 'setEndNode'].includes(this.mode)) this.canvas.style.cursor = 'pointer';
+                else if (this.mode === 'moveNode') this.canvas.style.cursor = 'grab';
+                else this.canvas.style.cursor = 'default';
+            }
+
+            handleMouseDown(e) {
+                const { x, y } = this.getCanvasCoords(e);
+                const clickedNode = this.getNodeAt(x, y);
+                if (this.mode === 'moveNode' && clickedNode) {
+                    this.isDragging = true; this.draggedNode = clickedNode;
+                    this.canvas.style.cursor = 'grabbing';
+                }
+            }
+
+            handleMouseMove(e) {
+                if (this.isDragging && this.draggedNode) {
+                    const { x, y } = this.getCanvasCoords(e);
+                    this.draggedNode.x = x; this.draggedNode.y = y;
+                    this.updateDisplay();
+                }
+            }
+            
+            handleMouseUp(e) {
+                if (this.isDragging) {
+                    this.isDragging = false; this.draggedNode = null;
+                    if(this.mode === 'moveNode') this.canvas.style.cursor = 'grab';
+                } else { this.handleCanvasClick(e); }
+            }
+
+            handleMouseLeave(e) { if (this.isDragging) { this.isDragging = false; this.draggedNode = null; } }
+
+            getCanvasCoords(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            }
+
+            handleCanvasClick(e) {
+                const { x, y } = this.getCanvasCoords(e);
+                if (this.mode === 'addNode') { this.addNode(x, y); return; }
+
+                const clickedNode = this.getNodeAt(x, y);
+                if (!clickedNode) {
+                    if (this.mode === 'addEdge' && this.selectedNode) { this.selectedNode.selected = false; this.selectedNode = null; }
+                    this.updateDisplay(); return;
+                }
+
+                if (this.mode === 'addEdge') {
+                    if (!this.selectedNode) { this.selectedNode = clickedNode; clickedNode.selected = true; } 
+                    else if (this.selectedNode !== clickedNode) {
+                        this.addEdge(this.selectedNode, clickedNode); this.selectedNode.selected = false; this.selectedNode = null;
+                    }
+                } else if (this.mode === 'setStartNode') {
+                    if(this.startNode) this.startNode.isStart = false;
+                    if(clickedNode === this.endNode) this.endNode = null;
+                    this.startNode = clickedNode; this.startNode.isStart = true; this.setMode('ready');
+                } else if (this.mode === 'setEndNode') {
+                    if(this.endNode) this.endNode.isEnd = false;
+                    if(clickedNode === this.startNode) this.startNode = null;
+                    this.endNode = clickedNode; this.endNode.isEnd = true; this.setMode('ready');
+                }
+                this.updateDisplay();
+            }
+
+            addNode(x, y) {
+                for (let node of this.nodes) { if (Math.hypot(x - node.x, y - node.y) < this.nodeRadius * 2.5) return; }
+                const node = { id: this.nextNodeId++, x, y, label: String.fromCharCode(65 + (this.nodes.length % 26)), visited: false, distance: Infinity, selected: false, highlight: false, isStart: false, isEnd: false, isPathNode: false, isFaded: false };
+                this.nodes.push(node); this.updateDisplay();
+            }
+
+            addEdge(node1, node2) {
+                const exists = this.edges.some(e => (e.from === node1 && e.to === node2) || (e.from === node2 && e.to === node1));
+                if (!exists) {
+                    const weight = Math.floor(Math.random() * 20) + 1;
+                    this.edges.push({ from: node1, to: node2, weight, inMST: false, highlight: false, isPath: false, isFaded: false });
+                }
+            }
+
+            getNodeAt(x, y) { for (let node of this.nodes) { if (Math.hypot(x - node.x, y - node.y) <= this.nodeRadius) return node; } return null; }
+
+            clearGraph() { this.nodes = []; this.edges = []; this.nextNodeId = 0; this.startNode = null; this.endNode = null; this.resetAlgorithm(); this.setMode('ready'); }
+            
+            loadSampleGraph() {
+                this.clearGraph();
+                const sampleNodes = [{x: 150, y: 100}, {x: 300, y: 150}, {x: 450, y: 100}, {x: 200, y: 250}, {x: 400, y: 300}, {x: 350, y: 450}];
+                sampleNodes.forEach(n => this.addNode(n.x, n.y));
+                const sampleEdges = [{f: 0, t: 1, w: 4},{f: 0, t: 3, w: 2},{f: 1, t: 2, w: 6},{f: 1, t: 4, w: 3},{f: 2, t: 4, w: 1},{f: 3, t: 4, w: 5},{f: 4, t: 5, w: 7},{f: 3, t: 5, w: 8}];
+                sampleEdges.forEach(e => this.addEdge(this.nodes[e.f], this.nodes[e.t]));
+                this.setMode('ready'); this.updateDisplay();
+            }
+
+            startAlgorithm() {
+                if (!this.algorithm || this.nodes.length === 0) return;
+                if(['dijkstra', 'dfs', 'bfs'].includes(this.algorithm) && !this.startNode) {
+                    this.updateStepDescription("Error", "Please select a start node for this algorithm."); return;
+                }
+                this.setMode('algorithm'); this.currentStep = 0; this.resetAlgorithmVisuals();
+                const generator = { 'kruskal': this.generateKruskalSteps, 'dijkstra': this.generateDijkstraSteps, 'dfs': this.generateDFSSteps, 'bfs': this.generateBFSSteps };
+                this.algorithmSteps = generator[this.algorithm].call(this);
+                this.displayStep();
+            }
+            
+            // --- ALGORITHM LOGIC (UNCHANGED, OMITTED FOR BREVITY) ---
+            generateKruskalSteps() { const steps = []; const sortedEdges = [...this.edges].sort((a, b) => a.weight - b.weight); const parent = {}; this.nodes.forEach(node => parent[node.id] = node.id); const find = (x) => (parent[x] === x) ? x : find(parent[x]); const union = (x, y) => parent[find(x)] = find(y); let mstEdges = []; steps.push({ title: "Kruskal's Algorithm: Start", description: "Kruskal's algorithm finds a Minimum Spanning Tree (MST) by sorting all edges by weight and adding the cheapest ones that don't form a cycle.", dataStructureTitle: "Sorted Edges", dataStructureState: sortedEdges.map(e => `${e.from.label}-${e.to.label} (${e.weight})`).join(', '), mstEdges: [] }); for (let edge of sortedEdges) { if (find(edge.from.id) !== find(edge.to.id)) { union(edge.from.id, edge.to.id); mstEdges.push(edge); steps.push({ title: `Add Edge ${edge.from.label}-${edge.to.label}`, description: `Considering edge ${edge.from.label}-${edge.to.label} (weight ${edge.weight}). Since nodes ${edge.from.label} and ${edge.to.label} are in different sets, adding this edge will not form a cycle. We add it to our MST.`, highlightEdges: [edge], mstEdges: [...mstEdges], dataStructureTitle: "MST Edges", dataStructureState: mstEdges.map(e => `${e.from.label}-${e.to.label} (${e.weight})`).join(', ') }); } else { steps.push({ title: `Skip Edge ${edge.from.label}-${edge.to.label}`, description: `Considering edge ${edge.from.label}-${edge.to.label} (weight ${edge.weight}). Since nodes ${edge.from.label} and ${edge.to.label} are already in the same connected component, adding this edge would create a cycle. We skip it.`, highlightEdges: [edge], rejected: true, mstEdges: [...mstEdges], dataStructureTitle: "MST Edges", dataStructureState: mstEdges.map(e => `${e.from.label}-${e.to.label} (${e.weight})`).join(', ') }); } } const totalWeight = mstEdges.reduce((s, e) => s + e.weight, 0); steps.push({ title: "Kruskal's: Complete", description: `The algorithm is complete. The final MST connects all nodes with the minimum possible total edge weight of ${totalWeight}.`, mstEdges: [...mstEdges], dataStructureTitle: "Final MST", dataStructureState: `Total Weight: ${totalWeight}`, isFinal: true }); return steps; }
+            generateDijkstraSteps() { const steps = []; const predecessors = {}; this.nodes.forEach(n => { n.distance = Infinity; n.visited = false; }); const startNode = this.startNode; startNode.distance = 0; let unvisited = [...this.nodes]; const getQueueState = () => unvisited.map(n => `${n.label}(${n.distance === Infinity ? '∞' : n.distance})`).join(', '); steps.push({ title: "Dijkstra's: Initialize", description: `We start at node ${startNode.label}. Its distance is set to 0, and all other nodes are set to infinity. We'll use a priority queue to always select the unvisited node with the smallest distance.`, distances: this.getDistancesSnapshot(), dataStructureTitle: "Unvisited Nodes (Priority Queue)", dataStructureState: getQueueState() }); while (unvisited.length > 0) { unvisited.sort((a,b) => a.distance - b.distance); let current = unvisited.shift(); if (current.distance === Infinity) break; current.visited = true; steps.push({ title: `Visit Node ${current.label}`, description: `From the unvisited set, ${current.label} has the smallest distance (${current.distance}). We mark it as visited and examine its neighbors to see if we can find shorter paths through it.`, highlightNodes: [current], distances: this.getDistancesSnapshot(), dataStructureTitle: "Unvisited Nodes (Priority Queue)", dataStructureState: getQueueState() }); if (this.endNode && current === this.endNode) { steps.push({ title: `Reached End Node`, description: `End node ${current.label} has been finalized. We can now trace back to find the shortest path.`, highlightNodes: [current], distances: this.getDistancesSnapshot(), dataStructureTitle: "Unvisited Nodes (Priority Queue)", dataStructureState: getQueueState() }); break; } const neighbors = this.edges.filter(e => e.from === current || e.to === current).map(e => (e.from === current ? e.to : e.from)).filter(n => !n.visited); for (let neighbor of neighbors) { const edge = this.edges.find(e => (e.from === current && e.to === neighbor) || (e.from === neighbor && e.to === current)); const newDist = current.distance + edge.weight; if (newDist < neighbor.distance) { neighbor.distance = newDist; predecessors[neighbor.id] = current; steps.push({ title: `Update Neighbor ${neighbor.label}`, description: `We found a new, shorter path to ${neighbor.label} through ${current.label}. The new total distance is ${current.distance} + ${edge.weight} = ${newDist}. We update its distance and record that we came from ${current.label}.`, highlightNodes: [current, neighbor], highlightEdges: [edge], distances: this.getDistancesSnapshot(), dataStructureTitle: "Unvisited Nodes (Priority Queue)", dataStructureState: getQueueState() }); } } } if (this.endNode) { let pathEdges = [], pathNodes = [], currentPathNode = this.endNode; if (predecessors[currentPathNode.id] || currentPathNode === startNode) { while (currentPathNode) { pathNodes.unshift(currentPathNode); const pred = predecessors[currentPathNode.id]; if (pred) { const edge = this.edges.find(e => (e.from === pred && e.to === currentPathNode) || (e.from === currentPathNode && e.to === pred)); if (edge) pathEdges.unshift(edge); } currentPathNode = pred; } } if (pathNodes.includes(startNode)) { steps.push({ title: "Shortest Path Found", description: `By backtracking from ${this.endNode.label}, we found the shortest path from ${startNode.label} with a total cost of ${this.endNode.distance}.`, path: pathEdges, pathNodes: pathNodes, distances: this.getDistancesSnapshot(), dataStructureTitle: "Final Path", dataStructureState: pathNodes.map(n => n.label).join(' -> '), isFinal: true }); } else { steps.push({ title: "Path Not Found", description: `${this.endNode.label} is not reachable from ${startNode.label}.`, distances: this.getDistancesSnapshot(), dataStructureTitle: "Result", dataStructureState: "No path exists.", isFinal: true }); } } return steps; }
+            generateDFSSteps() { const steps = []; const stack = [this.startNode]; const predecessors = {}; let pathFound = false; this.nodes.forEach(n => n.visited = false); steps.push({ title: "DFS: Start", description: `Depth-First Search explores as far as possible along each branch before backtracking. We start at ${this.startNode.label} and use a Stack data structure.`, highlightNodes: [this.startNode], dataStructureTitle: "Stack (Top ->)", dataStructureState: `[${stack.map(n=>n.label).join(', ')}]`}); while (stack.length > 0) { const current = stack.pop(); if (!current.visited) { current.visited = true; steps.push({ title: `Visit Node ${current.label}`, description: `We pop ${current.label} from the stack and mark it as visited. Now, we'll add its unvisited neighbors to the stack.`, highlightNodes: [current], dataStructureTitle: "Stack (Top ->)", dataStructureState: `[${stack.map(n=>n.label).join(', ')}]`}); if (this.endNode && current === this.endNode) { pathFound = true; break; } const neighbors = this.edges.filter(e => e.from === current || e.to === current).map(e => e.from === current ? e.to : e.from).filter(n => !n.visited); for (let i = neighbors.length - 1; i >= 0; i--) { const neighbor = neighbors[i]; stack.push(neighbor); predecessors[neighbor.id] = current; } steps.push({ title: `Push Neighbors of ${current.label}`, description: `Adding ${neighbors.length} unvisited neighbors to the stack: ${neighbors.map(n=>n.label).join(', ')}.`, highlightNodes: [current], dataStructureTitle: "Stack (Top ->)", dataStructureState: `[${stack.map(n=>n.label).join(', ')}]`}); } } if (this.endNode && pathFound) { let pathEdges = [], pathNodes = [], currentPathNode = this.endNode; while(currentPathNode) { pathNodes.unshift(currentPathNode); const pred = predecessors[currentPathNode.id]; if (pred) { const edge = this.edges.find(e => (e.from === pred && e.to === currentPathNode) || (e.from === currentPathNode && e.to === pred)); if (edge) pathEdges.unshift(edge); } currentPathNode = pred; } steps.push({ title: "DFS Path Found", description: `A path from ${this.startNode.label} to ${this.endNode.label} was found. Note that DFS does not guarantee the shortest path, only that a path exists.`, path: pathEdges, pathNodes: pathNodes, dataStructureTitle: "Final Path", dataStructureState: pathNodes.map(n => n.label).join(' -> '), isFinal: true }); } else if (this.endNode) { steps.push({ title: "Path Not Found", description: `${this.endNode.label} not reached.`, isFinal: true }); } return steps; }
+            generateBFSSteps() { const steps = []; const queue = [this.startNode]; const predecessors = {}; let pathFound = false; this.nodes.forEach(n => n.visited = false); this.startNode.visited = true; steps.push({ title: "BFS: Start", description: `Breadth-First Search explores neighbors level by level. It finds the shortest path in terms of number of edges. We start at ${this.startNode.label} and use a Queue.`, highlightNodes: [this.startNode], dataStructureTitle: "Queue (Front ->)", dataStructureState: `[${queue.map(n=>n.label).join(', ')}]`}); while (queue.length > 0) { const current = queue.shift(); steps.push({ title: `Visit Node ${current.label}`, description: `We dequeue ${current.label} and will now add all its unvisited neighbors to the back of the queue.`, highlightNodes: [current], dataStructureTitle: "Queue (Front ->)", dataStructureState: `[${queue.map(n=>n.label).join(', ')}]`}); if (this.endNode && current === this.endNode) { pathFound = true; break; } const neighbors = this.edges.filter(e => e.from === current || e.to === current).map(e => e.from === current ? e.to : e.from).filter(n => !n.visited); neighbors.forEach(neighbor => { neighbor.visited = true; predecessors[neighbor.id] = current; queue.push(neighbor); }); steps.push({ title: `Enqueue Neighbors of ${current.label}`, description: `Adding ${neighbors.length} unvisited neighbors to the queue: ${neighbors.map(n=>n.label).join(', ')}.`, highlightNodes: [current], dataStructureTitle: "Queue (Front ->)", dataStructureState: `[${queue.map(n=>n.label).join(', ')}]`}); } if (this.endNode && pathFound) { let pathEdges = [], pathNodes = [], currentPathNode = this.endNode; while(currentPathNode) { pathNodes.unshift(currentPathNode); const pred = predecessors[currentPathNode.id]; if (pred) { const edge = this.edges.find(e => (e.from === pred && e.to === currentPathNode) || (e.from === currentPathNode && e.to === pred)); if (edge) pathEdges.unshift(edge); } currentPathNode = pred; } const totalWeight = pathEdges.reduce((sum, edge) => sum + edge.weight, 0); steps.push({ title: "BFS Path Found", description: `The path with the fewest edges from ${this.startNode.label} to ${this.endNode.label} has been found. The total weight of this path is ${totalWeight}.`, path: pathEdges, pathNodes: pathNodes, dataStructureTitle: "Final Path", dataStructureState: pathNodes.map(n => n.label).join(' -> '), isFinal: true }); } else if (this.endNode) { steps.push({ title: "Path Not Found", description: `${this.endNode.label} not reached.`, isFinal: true }); } return steps; }
+            
+            getDistancesSnapshot() { return this.nodes.reduce((acc, node) => { acc[node.label] = node.distance === Infinity ? '∞' : node.distance; return acc; }, {}); }
+
+            resetAlgorithmVisuals() { this.nodes.forEach(n => { n.visited = false; n.distance = Infinity; n.highlight = false; n.selected = false; n.isPathNode = false; n.isFaded = false; }); this.edges.forEach(e => { e.inMST = false; e.highlight = false; e.isPath = false; e.isFaded = false; }); }
+
+            resetAlgorithm() {
+                this.currentStep = 0; this.algorithmSteps = [];
+                this.setMode('ready'); this.resetAlgorithmVisuals();
+                if (this.autoPlayInterval) { clearInterval(this.autoPlayInterval); this.autoPlayInterval = null; document.getElementById('autoPlay').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8a8 8 0 0 0-8-8a8 8 0 0 0-8 8a8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10a10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m-3 15V7l9 5l-9 5Z"/></svg>Auto Play`; }
+                this.updateDisplay();
+                this.updateStepDescription("Welcome!", "Use the controls on the left to build a graph, then select an algorithm to visualize.");
+                this.updateDataStructure("Data Structure", "State will be shown here...");
+            }
+            
+            nextStep() { if (this.currentStep < this.algorithmSteps.length - 1) { this.currentStep++; this.displayStep(); } }
+            previousStep() { if (this.currentStep > 0) { this.currentStep--; this.displayStep(); } }
+
+            displayStep() {
+                if (this.algorithmSteps.length === 0) return;
+                const step = this.algorithmSteps[this.currentStep];
+                this.resetAlgorithmVisuals();
+
+                ['highlightNodes', 'highlightEdges', 'mstEdges', 'path', 'pathNodes'].forEach(key => {
+                    if (step[key]) {
+                        step[key].forEach(item => {
+                            if (key === 'highlightNodes') item.highlight = true;
+                            else if (key === 'highlightEdges') item.highlight = true;
+                            else if (key === 'mstEdges') item.inMST = true;
+                            else if (key === 'path') item.isPath = true;
+                            else if (key === 'pathNodes') item.isPathNode = true;
+                        });
+                    }
+                });
+                
+                if (step.isFinal) {
+                    const finalPathNodes = step.pathNodes || (step.mstEdges ? this.nodes : []);
+                    const finalPathEdges = step.path || step.mstEdges || [];
+                    this.nodes.forEach(n => { if (!finalPathNodes.includes(n)) n.isFaded = true; });
+                    this.edges.forEach(e => { if (!finalPathEdges.includes(e)) e.isFaded = true; });
+                }
+
+                if (step.distances) { this.nodes.forEach(node => { const newDist = step.distances[node.label]; node.distance = newDist === '∞' ? Infinity : newDist; }); }
+                this.updateDisplay();
+                this.updateStepDescription(step.title, step.description);
+                this.updateDataStructure(step.dataStructureTitle, step.dataStructureState);
+            }
+
+            toggleAutoPlay() {
+                const button = document.getElementById('autoPlay');
+                if (this.autoPlayInterval) {
+                    clearInterval(this.autoPlayInterval); this.autoPlayInterval = null;
+                    button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20a8 8 0 0 0 8-8a8 8 0 0 0-8-8a8 8 0 0 0-8 8a8 8 0 0 0 8 8m0-18a10 10 0 0 1 10 10a10 10 0 0 1-10 10C6.47 22 2 17.5 2 12A10 10 0 0 1 12 2m-3 15V7l9 5l-9 5Z"/></svg>Auto Play`; 
+                } else { 
+                    this.autoPlayInterval = setInterval(() => { if (this.currentStep < this.algorithmSteps.length - 1) { this.nextStep(); } else { this.toggleAutoPlay(); } }, 2000); 
+                    button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 19v-2H9v2h6Zm-3-6c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5ZM12 4c.83 0 1.5.67 1.5 1.5S12.83 7 12 7s-1.5-.67-1.5-1.5S11.17 4 12 4Z"/></svg>Pause`;
+                }
+            }
+
+            updateStepDescription(title, description) { document.getElementById('stepTitle').textContent = title; document.getElementById('stepDescription').innerHTML = description; }
+            updateDataStructure(title, state) { document.getElementById('dataStructureTitle').textContent = title || "Data Structure"; document.getElementById('dataStructureState').textContent = state || "State will be shown here..."; }
+
+            updateDisplay() {
+                const style = getComputedStyle(document.documentElement);
+                const isDarkMode = body.classList.contains('dark-mode');
+                const canvasBg = isDarkMode ? style.getPropertyValue('--background-canvas-dark') : style.getPropertyValue('--background-canvas-light');
+                
+                this.ctx.fillStyle = canvasBg;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.edges.forEach(edge => { if (edge.isFaded) this.drawEdge(edge, style, isDarkMode); });
+                this.nodes.forEach(node => { if (node.isFaded) this.drawNode(node, style, isDarkMode); });
+                
+                this.edges.forEach(edge => { if (!edge.isFaded) this.drawEdge(edge, style, isDarkMode); });
+                this.nodes.forEach(node => { if (!node.isFaded) this.drawNode(node, style, isDarkMode); });
+            }
+
+            drawEdge(edge, style, isDarkMode) {
+                const ctx = this.ctx;
+                const { from, to } = edge;
+                const dx = to.x - from.x, dy = to.y - from.y, len = Math.hypot(dx, dy);
+                if (len === 0) return;
+                const ux = dx / len, uy = dy / len;
+                const sx = from.x + ux * this.nodeRadius, sy = from.y + uy * this.nodeRadius;
+                const ex = to.x - ux * this.nodeRadius, ey = to.y - uy * this.nodeRadius;
+                
+                ctx.save();
+                if (edge.isFaded) { ctx.globalAlpha = 0.15; }
+                
+                ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey);
+                
+                if (edge.isPath || edge.inMST) {
+                    ctx.lineWidth = 6;
+                    ctx.strokeStyle = edge.inMST ? style.getPropertyValue('--accent-green') : style.getPropertyValue('--primary-teal');
+                    ctx.shadowColor = ctx.strokeStyle;
+                    ctx.shadowBlur = 15;
+                } else if (edge.highlight) { 
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = edge.rejected ? '#dc3545' : style.getPropertyValue('--highlight-yellow');
+                } else {
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = isDarkMode ? '#6c757d' : '#adb5bd';
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                const midX = (sx + ex) / 2, midY = (sy + ey) / 2;
+                ctx.globalAlpha = 1; // Ensure weight is not faded
+                ctx.fillStyle = isDarkMode ? style.getPropertyValue('--background-canvas-dark') : style.getPropertyValue('--background-canvas-light');
+                ctx.fillRect(midX - 15, midY - 10, 30, 20);
+                
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = isDarkMode ? '#6c757d' : '#dee2e6';
+                if(edge.isFaded) { ctx.globalAlpha = 0.15; } // Re-apply fade for rect border
+                ctx.strokeRect(midX - 15, midY - 10, 30, 20);
+                
+                ctx.globalAlpha = 1;
+                if(edge.isFaded) { ctx.globalAlpha = 0.3; } // Slightly less fade for text
+                ctx.fillStyle = isDarkMode ? style.getPropertyValue('--text-primary-dark') : style.getPropertyValue('--text-primary-light');
+                ctx.font = "500 12px 'Roboto'";
+                ctx.textAlign = 'center';
+                ctx.fillText(edge.weight, midX, midY + 4);
+                ctx.restore();
+            }
+
+            drawNode(node, style, isDarkMode) {
+                const ctx = this.ctx;
+                ctx.save();
+                if (node.isFaded) { ctx.globalAlpha = 0.15; }
+
+                ctx.beginPath(); ctx.arc(node.x, node.y, this.nodeRadius, 0, 2 * Math.PI);
+                
+                let fillColor = isDarkMode ? '#495057' : '#fff';
+                let strokeColor = isDarkMode ? '#6c757d' : '#adb5bd';
+                let textColor = isDarkMode ? '#f8f9fa' : '#212529';
+                
+                if (node.isPathNode) { 
+                    fillColor = isDarkMode ? '#3a5a7d' : '#e9ecef'; 
+                    strokeColor = style.getPropertyValue('--primary-teal'); 
+                }
+                else if (node.highlight) { fillColor = isDarkMode ? '#664d03' : '#fff3cd'; strokeColor = style.getPropertyValue('--highlight-yellow'); }
+                else if (node.visited) { fillColor = isDarkMode ? '#0f5132' : '#d4edda'; strokeColor = style.getPropertyValue('--accent-green'); }
+                else if (node.selected) { fillColor = isDarkMode ? '#004085' : '#cce5ff'; strokeColor = '#007bff';}
+                
+                if (node.isStart) { fillColor = style.getPropertyValue('--primary-teal'); strokeColor = '#4a7568'; textColor = '#fff'; }
+                if (node.isEnd) { fillColor = style.getPropertyValue('--accent-red'); strokeColor = '#9d4243'; textColor = '#fff'; }
+                
+                ctx.fillStyle = fillColor;
+                if (node.isPathNode || node.isStart || node.isEnd) {
+                    ctx.shadowColor = strokeColor;
+                    ctx.shadowBlur = 15;
+                }
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = (node.isStart || node.isEnd || node.isPathNode || node.highlight) ? 3 : 2;
+                ctx.stroke();
+                
+                ctx.fillStyle = textColor;
+                ctx.font = "700 16px 'Roboto'";
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.label, node.x, node.y);
+                
+                if (this.algorithm === 'dijkstra' && this.mode === 'algorithm' && node.distance !== Infinity) {
+                    ctx.fillStyle = isDarkMode ? style.getPropertyValue('--text-primary-dark') : style.getPropertyValue('--text-primary-light');
+                    ctx.font = "500 12px 'Roboto'";
+                    ctx.fillText(node.distance, node.x, node.y + this.nodeRadius + 15);
+                }
+                ctx.restore();
+            }
+        }
+
+        const visualizer = new GraphVisualizer();
+    </script>
+</body>
+</html>
+
