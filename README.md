@@ -1,10 +1,10 @@
-# 📊 Graph Algorithm Visualizer
+# Graph Algorithm Visualizer
 
 Hey there! Welcome to the Graph Algorithm Visualizer, a little tool designed to help you see how different graph algorithms work, step by step.
 
 It can be tricky to understand these concepts just by reading about them, so this visualizer brings them to life. You can build your own graphs, or load a sample, and watch the magic happen.
 
-## ✨ Features
+## Features
 
 * **Interactive Graph Editor:** Easily create your own graphs.
     * Add & move nodes.
@@ -16,14 +16,14 @@ It can be tricky to understand these concepts just by reading about them, so thi
 * **Data Structure View:** See how the underlying data structures (like queues or priority queues) change in real-time.
 * **Light & Dark Mode:** For comfortable viewing, day or night!
 
-## 🚀 How to Use
+## How to Use
 
 1.  **Build a Graph:** Use the "Graph Editor" controls on the left to add nodes and edges to the canvas.
 2.  **Set Start/End Nodes:** For pathfinding algorithms like Dijkstra's, BFS, or DFS, click "Set Start Node" and "Set End Node" and then select the nodes on your graph.
 3.  **Choose an Algorithm:** Pick an algorithm from the dropdown menu.
 4.  **Visualize!** Click "Start Algorithm" and use the controls on the right to walk through the steps.
 
-## 🧠 Algorithms Implemented
+## Algorithms Implemented
 
 You can visualize the following algorithms:
 
@@ -32,7 +32,7 @@ You can visualize the following algorithms:
 * **Depth-First Search (DFS)**
 * **Breadth-First Search (BFS)**
 
-## 💻 How to Run
+## How to Run
 
 Since this is a simple, self-contained web app, all you need to do is:
 
